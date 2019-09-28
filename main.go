@@ -25,7 +25,7 @@ func main() {
 
 	queries, err := findQueries(dir)
 	if err != nil {
-		log.Fatalln("failed to find queries", err)
+		log.Fatalln("failed to find queries:", err)
 	}
 
 	b, err := json.Marshal(queries)
