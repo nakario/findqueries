@@ -3,7 +3,6 @@ package main
 import (
 	"go/parser"
 	"go/token"
-	"log"
 
 	"github.com/pkg/errors"
 )
@@ -22,7 +21,11 @@ func findQueries(dir string) (map[string][]queryInfo, error) {
 	queries := make(map[string][]queryInfo)
 
 	for pkgName, pkg := range pkgs {
-		queries[pkgName] = searchPackage(pkg)
+		qs, err := searchPackage(pkg, dir, fset)
+		if err != nil {
+			return nil, err
+		}
+		queries[pkgName] = qs
 	}
 	
 	return queries, nil
