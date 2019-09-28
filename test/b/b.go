@@ -1,16 +1,11 @@
 package b
 
-// Fuga is a struct
-type Fuga struct {
-	Piyo string
-}
+import "github.com/nakario/findqueries/test/c"
 
-// GetPiyo returns f.Piyo
-func (f *Fuga) GetPiyo() string {
-	return f.Piyo
-}
+func F00() {}
 
-// NewFuga returns a new Fuga
-func NewFuga() *Fuga {
-	return &Fuga{"piyo"}
-}
+type G func()
+
+func (g G) F00() {}
+
+func C() c.C { return c.C(F00) }
