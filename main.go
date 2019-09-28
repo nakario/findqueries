@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -21,5 +23,12 @@ func main() {
 		log.Fatalln("failed to get absolute path of", os.Args[1], ":", err)
 	}
 
-	findQueries(dir)
+	queries := findQueries(dir)
+
+	b, err := json.Marshal(queries)
+	buf := new(bytes.Buffer)
+	if err := json.Compact(buf, b); err != nil {
+		log.Fatalln("failed to compact json:", err)
+	}
+	fmt.Println(buf)
 }
