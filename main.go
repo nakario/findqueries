@@ -23,7 +23,10 @@ func main() {
 		log.Fatalln("failed to get absolute path of", os.Args[1], ":", err)
 	}
 
-	queries := findQueries(dir)
+	queries, err := findQueries(dir)
+	if err != nil {
+		log.Fatalln("failed to find queries", err)
+	}
 
 	b, err := json.Marshal(queries)
 	buf := new(bytes.Buffer)
