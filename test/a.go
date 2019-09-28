@@ -4,6 +4,6 @@ import (
 	"github.com/nakario/findqueries/test/b"
 )
 
-func hoge() b.Fuga {
+func hoge() *b.Fuga {
 	return b.NewFuga()
 }
