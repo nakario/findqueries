@@ -10,12 +10,22 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
+	queryerInfoPath := defaultQueryerInfoPath()
+	switch len(os.Args) {
+	case 2:
+		break
+	case 3:
+		var err error
+		queryerInfoPath, err = filepath.Abs(os.Args[2])
+		if err != nil {
+			log.Fatalln("failed to get path of queryers.json:", err)
+		}
+	default:
 		exe, err := os.Executable()
 		if err != nil {
-			log.Fatalln("failed toget executable name:", err)
+			log.Fatalln("failed to get executable name:", err)
 		}
-		fmt.Println("Usage:", exe, "path/to/dir")
+		fmt.Println("Usage:", exe, "path/to/dir", "[path/to/queryers.json]")
 		return
 	}
 	dir, err := filepath.Abs(os.Args[1])
@@ -23,7 +33,12 @@ func main() {
 		log.Fatalln("failed to get absolute path of", os.Args[1], ":", err)
 	}
 
-	queries, err := findQueries(dir)
+	queryers, err := loadQueryerInfo(queryerInfoPath)
+	if err != nil {
+		log.Fatalln("failed to load queryers:", err)
+	}
+
+	queries, err := findQueries(dir, queryers)
 	if err != nil {
 		log.Fatalln("failed to find queries:", err)
 	}

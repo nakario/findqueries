@@ -8,10 +8,10 @@ import (
 )
 
 type queryInfo struct{
-	query string
+	Query string `json:"query"`
 }
 
-func findQueries(dir string) (map[string][]queryInfo, error) {
+func findQueries(dir string, queryers []queryerInfo) (map[string][]queryInfo, error) {
 	fset := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fset, dir, nil, 0)
 	if err != nil {
@@ -21,7 +21,7 @@ func findQueries(dir string) (map[string][]queryInfo, error) {
 	queries := make(map[string][]queryInfo)
 
 	for pkgName, pkg := range pkgs {
-		qs, err := searchPackage(pkg, dir, fset)
+		qs, err := searchPackage(pkg, dir, fset, queryers)
 		if err != nil {
 			return nil, err
 		}
