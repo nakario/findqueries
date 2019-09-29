@@ -5,7 +5,9 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"strconv"
 
+	"github.com/pkg/errors"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/packages"
 )
@@ -29,6 +31,7 @@ func searchPackage(pkg *packages.Package, path string, fset *token.FileSet, quer
 
 	queries := make([]queryInfo, 0)
 	unresolved := make([]*ast.CallExpr, 0)
+	var err error
 	for _, f := range pkg.Syntax {
 		ast.Inspect(f, func(n ast.Node) bool {
 			ce, ok := n.(*ast.CallExpr)
@@ -46,7 +49,11 @@ func searchPackage(pkg *packages.Package, path string, fset *token.FileSet, quer
 			query := ""
 			switch q := queryExpr.(type) {
 			case *ast.BasicLit:
-				query = q.Value
+				query, err = strconv.Unquote(q.Value)
+				if err != nil {
+					err = errors.Wrap(err, "failed to unquote query")
+					break
+				}
 			default:
 				// TODO
 				unresolved = append(unresolved, ce)
@@ -55,6 +62,9 @@ func searchPackage(pkg *packages.Package, path string, fset *token.FileSet, quer
 			queries = append(queries, queryInfo{query})
 			return false
 		})
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	fmt.Println("UNRESOLVED")
