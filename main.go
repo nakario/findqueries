@@ -38,12 +38,12 @@ func main() {
 		log.Fatalln("failed to load queryers:", err)
 	}
 
-	queries, err := analyze(dir, queryers)
+	result, err := analyze(dir, queryers)
 	if err != nil {
 		log.Fatalln("failed to find queries:", err)
 	}
 
-	b, err := json.Marshal(queries)
+	b, err := json.Marshal(result)
 	buf := new(bytes.Buffer)
 	if err := json.Compact(buf, b); err != nil {
 		log.Fatalln("failed to compact json:", err)
