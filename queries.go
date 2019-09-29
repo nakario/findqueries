@@ -7,6 +7,9 @@ import (
 
 type queryInfo struct{
 	Query string `json:"query"`
+	Caller string `json:"caller"`
+	Expr string `json:"expr"`
+	Pos string `json:"pos"`
 }
 
 func findQueries(dir string, queryers []queryerInfo) (map[string][]queryInfo, error) {
