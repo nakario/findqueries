@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"os"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -67,12 +68,11 @@ func searchPackage(pkg *packages.Package, path string, fset *token.FileSet, quer
 		return nil, err
 	}
 
-	fmt.Println("UNRESOLVED")
-	for end, fn := range end2fn {
-		fmt.Println(fset.Position(end), fn)
+	if len(unresolved) > 0 {
+		fmt.Fprintln(os.Stderr, "UNRESOLVED")
 	}
 	for _, ce := range unresolved {
-		fmt.Println(fset.Position(ce.Pos()), types.ExprString(ce))
+		fmt.Fprintln(os.Stderr, fset.Position(ce.Pos()), types.ExprString(ce))
 	}
 
 	return queries, nil
