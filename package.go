@@ -61,7 +61,7 @@ func searchPackage(pkg *packages.Package, queryers []queryerInfo) ([]queryInfo, 
 			}
 			for scope.Parent() != nil {
 				if fn, ok := scope2fn[scope]; ok {
-					qi.Caller = fn.FullName()
+					qi.Caller = fn.Name()
 					break
 				}
 				scope = scope.Parent()
