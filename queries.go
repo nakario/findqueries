@@ -1,10 +1,8 @@
 package main
 
 import (
-	"go/parser"
-	"go/token"
-
 	"github.com/pkg/errors"
+	"golang.org/x/tools/go/packages"
 )
 
 type queryInfo struct{
@@ -12,20 +10,29 @@ type queryInfo struct{
 }
 
 func findQueries(dir string, queryers []queryerInfo) (map[string][]queryInfo, error) {
-	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, dir, nil, 0)
+	conf := &packages.Config{
+		Dir: dir,
+		Mode: packages.NeedName |
+		packages.NeedFiles |
+		packages.NeedImports |
+		packages.NeedDeps |
+		packages.NeedTypes |
+		packages.NeedSyntax |
+		packages.NeedTypesInfo,
+	}
+	pkgs, err := packages.Load(conf)
 	if err != nil {
 		return nil, errors.WithMessagef(err, "failed to parse dir %s", dir)
 	}
 
 	queries := make(map[string][]queryInfo)
 
-	for pkgName, pkg := range pkgs {
-		qs, err := searchPackage(pkg, dir, fset, queryers)
+	for _, pkg := range pkgs {
+		qs, err := searchPackage(pkg, dir, pkg.Fset, queryers)
 		if err != nil {
 			return nil, err
 		}
-		queries[pkgName] = qs
+		queries[pkg.Name] = qs
 	}
 	
 	return queries, nil

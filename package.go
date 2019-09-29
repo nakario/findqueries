@@ -3,62 +3,21 @@ package main
 import (
 	"fmt"
 	"go/ast"
-	"go/importer"
 	"go/token"
 	"go/types"
 
-	"github.com/pkg/errors"
 	"golang.org/x/tools/go/ast/astutil"
+	"golang.org/x/tools/go/packages"
 )
 
-type _package struct{
-	pkg *types.Package
-	fset *token.FileSet
-	info *types.Info
-	files []*ast.File
-	qualifier func(*types.Package) string
-}
-
-func newPackage(path string, fset *token.FileSet, p *ast.Package) (*_package, error) {
-	conf := &types.Config{Importer: importer.Default()}
-	info := &types.Info{
-		Types: make(map[ast.Expr]types.TypeAndValue),
-		Defs: make(map[*ast.Ident]types.Object),
-		Uses: make(map[*ast.Ident]types.Object),
-		Implicits: make(map[ast.Node]types.Object),
-		Selections: make(map[*ast.SelectorExpr]*types.Selection),
-		Scopes: make(map[ast.Node]*types.Scope),
-	}
-	files := make([]*ast.File, 0, len(p.Files))
-	for _, f := range p.Files {
-		files = append(files, f)
-	}
-	pkg, err := conf.Check(path, fset, files, info)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to type-check")
-	}
-	qualifier := func(other *types.Package) string {
-		if pkg == other {
-			return ""
-		}
-		return other.Path()
-	}
-	return &_package{pkg, fset, info, files, qualifier}, nil
-}
-
-func searchPackage(pkg *ast.Package, path string, fset *token.FileSet, queryers []queryerInfo) ([]queryInfo, error) {
-	p, err := newPackage(path, fset, pkg)
-	if err != nil {
-		return nil, err
-	}
-
+func searchPackage(pkg *packages.Package, path string, fset *token.FileSet, queryers []queryerInfo) ([]queryInfo, error) {
 	queryersMap := make(map[string]int)
 	for _, qi := range queryers {
 		queryersMap[qi.FullName] = qi.QueryPos
 	}
 
 	end2fn := make(map[token.Pos]*types.Func)
-	for ident, obj := range p.info.Uses {
+	for ident, obj := range pkg.TypesInfo.Uses {
 		fn, ok := obj.(*types.Func)
 		if !ok {
 			continue
@@ -70,7 +29,7 @@ func searchPackage(pkg *ast.Package, path string, fset *token.FileSet, queryers 
 
 	queries := make([]queryInfo, 0)
 	unresolved := make([]*ast.CallExpr, 0)
-	for _, f := range p.files {
+	for _, f := range pkg.Syntax {
 		ast.Inspect(f, func(n ast.Node) bool {
 			ce, ok := n.(*ast.CallExpr)
 			if !ok {
