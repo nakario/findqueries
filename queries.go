@@ -28,7 +28,7 @@ func findQueries(dir string, queryers []queryerInfo) (map[string][]queryInfo, er
 	queries := make(map[string][]queryInfo)
 
 	for _, pkg := range pkgs {
-		qs, err := searchPackage(pkg, dir, pkg.Fset, queryers)
+		qs, err := searchPackage(pkg, queryers)
 		if err != nil {
 			return nil, err
 		}

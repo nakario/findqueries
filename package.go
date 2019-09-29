@@ -13,7 +13,7 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-func searchPackage(pkg *packages.Package, path string, fset *token.FileSet, queryers []queryerInfo) ([]queryInfo, error) {
+func searchPackage(pkg *packages.Package, queryers []queryerInfo) ([]queryInfo, error) {
 	queryersMap := make(map[string]int)
 	for _, qi := range queryers {
 		queryersMap[qi.FullName] = qi.QueryPos
@@ -72,7 +72,7 @@ func searchPackage(pkg *packages.Package, path string, fset *token.FileSet, quer
 		fmt.Fprintln(os.Stderr, "UNRESOLVED")
 	}
 	for _, ce := range unresolved {
-		fmt.Fprintln(os.Stderr, fset.Position(ce.Pos()), types.ExprString(ce))
+		fmt.Fprintln(os.Stderr, pkg.Fset.Position(ce.Pos()), types.ExprString(ce))
 	}
 
 	return queries, nil
