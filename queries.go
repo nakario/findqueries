@@ -53,22 +53,6 @@ func findQueries(pkg *packages.Package, queryers []queryerInfo) ([]queryInfo, er
 			}
 			qi.Expr = types.ExprString(ce)
 			qi.Pos = pkg.Fset.Position(ce.Pos()).String()
-			scope := pkg.Types.Scope().Innermost(ce.Pos())
-			if scope == nil {
-				err = errors.New("unexpected call out of all scope: " + qi.Pos + " " + qi.Expr)
-				return true
-			}
-			for scope.Parent() != nil {
-				if fn, ok := scope2fn[scope]; ok {
-					qi.Caller = fn.Name()
-					break
-				}
-				scope = scope.Parent()
-			}
-			if qi.Caller == "" {
-				err = errors.New("unexpected call out of all top-level functions: " + qi.Pos + " " + qi.Expr)
-				return true
-			}
 			end := astutil.Unparen(ce.Fun).End()
 			fn, ok := end2fn[end]
 			if !ok {
@@ -89,6 +73,18 @@ func findQueries(pkg *packages.Package, queryers []queryerInfo) ([]queryInfo, er
 				// TODO
 			}
 			qi.Query = query
+			scope := pkg.Types.Scope().Innermost(ce.Pos())
+			if scope == nil {
+				err = errors.New("unexpected call out of all scope: " + qi.Pos + " " + qi.Expr)
+				return true
+			}
+			for scope.Parent() != nil {
+				if fn, ok := scope2fn[scope]; ok {
+					qi.Caller = fn.Name()
+					break
+				}
+				scope = scope.Parent()
+			}
 			if qi.Query == "" || qi.Caller == "" {
 				unresolved = append(unresolved, qi)
 				return true
