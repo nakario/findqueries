@@ -38,7 +38,7 @@ func main() {
 		log.Fatalln("failed to load queryers:", err)
 	}
 
-	queries, err := findQueries(dir, queryers)
+	queries, err := analyze(dir, queryers)
 	if err != nil {
 		log.Fatalln("failed to find queries:", err)
 	}
