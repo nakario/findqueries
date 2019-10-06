@@ -48,8 +48,13 @@ func analyze(dir string, queryers []queryerInfo) (*result, error) {
 		pos2expr := make(map[token.Pos]*ast.CallExpr)
 		for _, file := range p.Syntax {
 			ast.Inspect(file, func(n ast.Node) bool {
-				if ce, ok := n.(*ast.CallExpr); ok {
-					pos2expr[ce.Lparen] = ce
+				switch expr := n.(type) {
+				case *ast.CallExpr:
+					pos2expr[expr.Lparen] = expr
+				case *ast.GoStmt:
+					pos2expr[expr.Go] = expr.Call
+				case *ast.DeferStmt:
+					pos2expr[expr.Defer] = expr.Call
 				}
 				return true
 			})
