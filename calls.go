@@ -148,7 +148,7 @@ func findCalls(pkg *ssa.Package, queryers []queryerInfo, pos2expr map[token.Pos]
 					query := args[pos]
 					possibleQueries, err := resolve(query)
 					if err != nil {
-						fmt.Fprintln(os.Stderr, err)
+						qi.err = err
 						unresolved = append(unresolved, qi)
 					} else {
 						for _, pq := range possibleQueries {
@@ -170,6 +170,7 @@ func findCalls(pkg *ssa.Package, queryers []queryerInfo, pos2expr map[token.Pos]
 	}
 	for _, qi := range unresolved {
 		fmt.Fprintln(os.Stderr, qi.Pos, qi.Expr)
+		fmt.Fprintln(os.Stderr, qi.err)
 	}
 
 	ers := make([]string, 0, len(er2ees))

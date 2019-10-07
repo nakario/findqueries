@@ -20,6 +20,7 @@ type queryInfo struct{
 	Caller string `json:"caller"`
 	Expr string `json:"expr"`
 	Pos string `json:"pos"`
+	err error
 }
 
 type call struct{
