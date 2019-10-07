@@ -21,9 +21,12 @@ func resolve(query ssa.Value) ([]string, error) {
 		for _, edge := range q.Edges {
 			resolved, err := resolve(edge)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to resolve a phi query")
+				return nil, errors.Wrap(err, "failed to resolve a phi edge")
 			}
 			ret = append(ret, resolved...)
+		}
+		if len(ret) == 0 {
+			return nil, errors.New("there was no possible edge in a phi node")
 		}
 		return ret, nil
 	case *ssa.Const:
@@ -32,7 +35,10 @@ func resolve(query ssa.Value) ([]string, error) {
 	case *ssa.BinOp:
 		xs, err := resolve(q.X)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to resolve a query: lhs of +")
+			return nil, errors.Wrap(err, "failed to resolve lhs of +")
+		}
+		if len(xs) == 0 {
+			return nil, errors.New("couldn't find any queries from lhs of +")
 		}
 		ys, err := resolve(q.Y)
 		ret := make([]string, 0, len(xs) * len(ys))
@@ -41,7 +47,10 @@ func resolve(query ssa.Value) ([]string, error) {
 				ret = append(ret, x + y)
 			}
 		}
-		return ret, errors.Wrap(err, "failed to resolve a query: rhs of +")
+		if len(ys) == 0 {
+			return nil, errors.New("couldn't find any queries from rhs of +")
+		}
+		return ret, errors.Wrap(err, "failed to resolve rhs of +")
 	case *ssa.Extract:
 		switch tuple := q.Tuple.(type) {
 		case *ssa.Call:
@@ -93,6 +102,9 @@ func resolveFunc(fn *ssa.Function, index int) ([]string, error) {
 		default:
 			return nil, errors.New("unexpected last instruction in a function block")
 		}
+	}
+	if len(queries) == 0 {
+		return nil, errors.New("couldn't find any queries in a function")
 	}
 	return queries, nil
 }
