@@ -1,8 +1,10 @@
 package a
 
 import "database/sql"
+import "github.com/jmoiron/sqlx"
 
 var db *sql.DB
+var dbx *sqlx.DB
 
 const Q = "SELECT * FROM constant"
 
@@ -50,4 +52,11 @@ func queryers() {
 	db.Query(f3())
 	go db.Query("SELECT * FROM go")
 	defer db.Query("SELECT * FROM defer")
+
+	inQuery, inArgs, err := sqlx.In("SELECT * FROM sqlx_in WHERE 1 in () AND a=?", []int{1, 2, 3}, 4)
+	if err != nil {
+		panic(err)
+	}
+	a := struct{a, b int}{}
+	dbx.Get(&a, inQuery, inArgs...)
 }
