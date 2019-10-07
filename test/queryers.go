@@ -18,10 +18,17 @@ func f3() (string, []interface{}) {
 	return "SELECT * FROM f3 WHERE a=?, b=?", []interface{}{1, 1}
 }
 
+type myString string
+type stringAlias = string
+
 func queryers() {
 	db.Query("SELECT * FROM interpreted_string_lit")
 	db.Query(`SELECT * FROM raw_string_lit`)
+	db.Query(("SELECT * FROM paren"))
 	db.Query("SELECT * " + "FROM binary_operation")
+	db.Query(string("SELECT * FROM type_conversion1"))
+	db.Query(string(myString("SELECT * FROM type_conversion2")))
+	db.Query(stringAlias(myString("SELECT * FROM type_conversion3")))
 	q2 := "SELECT * FROM variable"
 	db.Query(q2)
 	q2 = "SELECT * FROM reassigned_variable"
