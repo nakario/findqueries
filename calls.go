@@ -28,6 +28,9 @@ func newQueryResolver(pkg *types.Package, builders []builderInfo) *queryResolver
 }
 
 func (qr *queryResolver) resolve(query ssa.Value) ([]string, error) {
+	if query == nil {
+		return nil, errors.New("query is nil")
+	}
 	switch q := query.(type) {
 	case *ssa.Phi:
 		ret := make([]string, 0)
@@ -43,6 +46,9 @@ func (qr *queryResolver) resolve(query ssa.Value) ([]string, error) {
 		}
 		return ret, nil
 	case *ssa.Const:
+		if q.Value == nil {
+			return nil, errors.New("constant value is nil")
+		}
 		queryStr, _ := strconv.Unquote(q.Value.ExactString())
 		return []string{queryStr}, nil
 	case *ssa.BinOp:
@@ -65,6 +71,9 @@ func (qr *queryResolver) resolve(query ssa.Value) ([]string, error) {
 		}
 		return ret, errors.Wrap(err, "failed to resolve rhs of +")
 	case *ssa.Extract:
+		if q.Tuple == nil {
+			return nil, errors.New("Extract.Tuple is nil")
+		}
 		switch tuple := q.Tuple.(type) {
 		case *ssa.Call:
 			callee := tuple.Call.StaticCallee()
@@ -76,15 +85,15 @@ func (qr *queryResolver) resolve(query ssa.Value) ([]string, error) {
 			}
 			return qr.resolveFunc(callee, q.Index)
 		case *ssa.TypeAssert:
-			return nil, errors.Errorf("not implemented extract: %#v", tuple.X)
+			return nil, errors.Errorf("extraction not implemented: %#v", tuple.X)
 		case *ssa.Next:
-			return nil, errors.Errorf("not implemented extract: %#v", tuple.Iter)
+			return nil, errors.Errorf("extraction not implemented: %#v", tuple.Iter)
 		case *ssa.UnOp:
-			return nil, errors.Errorf("not implemented extract: %#v", tuple.X)
+			return nil, errors.Errorf("extraction not implemented: %#v", tuple.X)
 		case *ssa.Lookup:
-			return nil, errors.Errorf("not implemented extract: %#v", tuple.X)
+			return nil, errors.Errorf("extraction not implemented: %#v", tuple.X)
 		default:
-			return nil, errors.New("unexpected extract")
+			return nil, errors.New("unexpected extraction")
 		}
 	case *ssa.Call:
 		callee := q.Call.StaticCallee()
@@ -96,7 +105,7 @@ func (qr *queryResolver) resolve(query ssa.Value) ([]string, error) {
 		}
 		return qr.resolveFunc(callee, 0)
 	}
-	return nil, errors.New("failed to resolve a query: unsupported value")
+	return nil, errors.Errorf("failed to resolve a query: unsupported value type %T", query)
 }
 
 func (qr *queryResolver) resolveFunc(fn *ssa.Function, index int) ([]string, error) {
@@ -107,9 +116,9 @@ func (qr *queryResolver) resolveFunc(fn *ssa.Function, index int) ([]string, err
 		}
 		switch last := block.Instrs[len(block.Instrs)-1].(type) {
 		case *ssa.If:
-			return nil, errors.Errorf("not implemented instr: %#v", last)
+			return nil, errors.Errorf("instr of type %T not implemented: %#v", last, last)
 		case *ssa.Jump:
-			return nil, errors.Errorf("not implemented instr: %#v", last)
+			return nil, errors.Errorf("instr of type %T not implemented: %#v", last, last)
 		case *ssa.Return:
 			queryStr, err := qr.resolve(last.Results[index])
 			if err != nil {
@@ -117,7 +126,7 @@ func (qr *queryResolver) resolveFunc(fn *ssa.Function, index int) ([]string, err
 			}
 			queries = append(queries, queryStr...)
 		case *ssa.Panic:
-			return nil, errors.Errorf("not implemented instr: %#v", last)
+			return nil, errors.Errorf("instr of type %T not implemented: %#v", last, last)
 		default:
 			return nil, errors.New("unexpected last instruction in a function block")
 		}

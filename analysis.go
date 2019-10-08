@@ -40,6 +40,9 @@ func analyze(dir string, queryers []queryerInfo, builders []builderInfo) (*resul
 		packages.NeedTypesInfo,
 	}
 	pkgs, err := packages.Load(conf)
+	if packages.PrintErrors(pkgs) > 0 {
+		return nil, errors.New("Some package have errors")
+	}
 	if err != nil {
 		return nil, errors.WithMessagef(err, "failed to parse dir %s", dir)
 	}
