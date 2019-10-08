@@ -28,7 +28,7 @@ type call struct{
 	Callee string `json:"callee"`
 }
 
-func analyze(dir string, queryers []queryerInfo) (*result, error) {
+func analyze(dir string, queryers []queryerInfo, builders []builderInfo) (*result, error) {
 	conf := &packages.Config{
 		Dir: dir,
 		Mode: packages.NeedName |
@@ -69,7 +69,7 @@ func analyze(dir string, queryers []queryerInfo) (*result, error) {
 	_, ssaPkgs := ssautil.Packages(pkgs, 0)
 	for _, pkg := range ssaPkgs {
 		if pkg == nil { continue }
-		qs, cs, err := findCalls(pkg, queryers, pkg2pos2expr[pkg.Pkg])
+		qs, cs, err := findCalls(pkg, queryers, builders, pkg2pos2expr[pkg.Pkg])
 		if err != nil {
 			return nil, err
 		}

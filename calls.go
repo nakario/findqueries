@@ -14,12 +14,25 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
-func resolve(query ssa.Value) ([]string, error) {
+type queryResolver struct {
+	pkg *types.Package
+	buildersMap map[string]builderInfo
+}
+
+func newQueryResolver(pkg *types.Package, builders []builderInfo) *queryResolver {
+	buildersMap := make(map[string]builderInfo)
+	for _, bi := range builders {
+		buildersMap[bi.FullName] = bi
+	}
+	return &queryResolver{pkg, buildersMap}
+}
+
+func (qr *queryResolver) resolve(query ssa.Value) ([]string, error) {
 	switch q := query.(type) {
 	case *ssa.Phi:
 		ret := make([]string, 0)
 		for _, edge := range q.Edges {
-			resolved, err := resolve(edge)
+			resolved, err := qr.resolve(edge)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to resolve a phi edge")
 			}
@@ -33,14 +46,14 @@ func resolve(query ssa.Value) ([]string, error) {
 		queryStr, _ := strconv.Unquote(q.Value.ExactString())
 		return []string{queryStr}, nil
 	case *ssa.BinOp:
-		xs, err := resolve(q.X)
+		xs, err := qr.resolve(q.X)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to resolve lhs of +")
 		}
 		if len(xs) == 0 {
 			return nil, errors.New("couldn't find any queries from lhs of +")
 		}
-		ys, err := resolve(q.Y)
+		ys, err := qr.resolve(q.Y)
 		ret := make([]string, 0, len(xs) * len(ys))
 		for _, x := range xs {
 			for _, y := range ys {
@@ -58,7 +71,10 @@ func resolve(query ssa.Value) ([]string, error) {
 			if callee == nil {
 				return nil, errors.New("dynamic call is not supported")
 			}
-			return resolveFunc(callee, q.Index)
+			if bi, ok := qr.buildersMap[callee.RelString(qr.pkg)]; ok {
+				return qr.resolve(tuple.Call.Args[bi.ArgIndex])
+			}
+			return qr.resolveFunc(callee, q.Index)
 		case *ssa.TypeAssert:
 			return nil, errors.Errorf("not implemented extract: %#v", tuple.X)
 		case *ssa.Next:
@@ -75,12 +91,15 @@ func resolve(query ssa.Value) ([]string, error) {
 		if callee == nil {
 			return nil, errors.New("dynamic call is not supported")
 		}
-		return resolveFunc(callee, 0)
+		if bi, ok := qr.buildersMap[callee.RelString(qr.pkg)]; ok {
+			return qr.resolve(q.Call.Args[bi.ArgIndex])
+		}
+		return qr.resolveFunc(callee, 0)
 	}
 	return nil, errors.New("failed to resolve a query: unsupported value")
 }
 
-func resolveFunc(fn *ssa.Function, index int) ([]string, error) {
+func (qr *queryResolver) resolveFunc(fn *ssa.Function, index int) ([]string, error) {
 	queries := make([]string, 0)
 	for _, block := range fn.Blocks {
 		if len(block.Instrs) == 0 {
@@ -92,7 +111,7 @@ func resolveFunc(fn *ssa.Function, index int) ([]string, error) {
 		case *ssa.Jump:
 			return nil, errors.Errorf("not implemented instr: %#v", last)
 		case *ssa.Return:
-			queryStr, err := resolve(last.Results[index])
+			queryStr, err := qr.resolve(last.Results[index])
 			if err != nil {
 				return nil, errors.WithMessage(err, "failed to resolve return value")
 			}
@@ -109,11 +128,12 @@ func resolveFunc(fn *ssa.Function, index int) ([]string, error) {
 	return queries, nil
 }
 
-func findCalls(pkg *ssa.Package, queryers []queryerInfo, pos2expr map[token.Pos]*ast.CallExpr) ([]queryInfo, []call, error) {
+func findCalls(pkg *ssa.Package, queryers []queryerInfo, builders []builderInfo, pos2expr map[token.Pos]*ast.CallExpr) ([]queryInfo, []call, error) {
 	queryersMap := make(map[string]int)
 	for _, qi := range queryers {
 		queryersMap[qi.FullName] = qi.QueryPos
 	}
+	qr := newQueryResolver(pkg.Pkg, builders)
 	queries := make([]queryInfo, 0)
 	unresolved := make([]queryInfo, 0)
 	er2ees := make(map[string][]string)
@@ -146,7 +166,7 @@ func findCalls(pkg *ssa.Package, queryers []queryerInfo, pos2expr map[token.Pos]
 						args = args[1:]
 					}
 					query := args[pos]
-					possibleQueries, err := resolve(query)
+					possibleQueries, err := qr.resolve(query)
 					if err != nil {
 						qi.err = err
 						unresolved = append(unresolved, qi)
