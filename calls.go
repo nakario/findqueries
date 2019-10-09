@@ -171,7 +171,7 @@ func findCalls(pkg *ssa.Package, queryers []queryerInfo, builders []builderInfo,
 						return nil, nil, errors.Errorf("found an unexpected call")
 					}
 					args := site.Common().Args
-					if site.Common().Signature().Recv() != nil {
+					if !site.Common().IsInvoke() && site.Common().Signature().Recv() != nil {
 						args = args[1:]
 					}
 					query := args[pos]
