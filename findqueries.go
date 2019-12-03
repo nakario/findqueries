@@ -31,6 +31,11 @@ var Analyzer = &analysis.Analyzer{
 	FactTypes:  []analysis.Fact{},
 }
 
+// Diagnostic categories
+const (
+	QUERY = "query"
+)
+
 var (
 	queriersInfoPath string // -queriers flag
 	buildersInfoPath string // -builders flag
@@ -63,6 +68,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	result, err := analyzePackage(ssa.Pkg, er, queriers, builders)
 	if err != nil {
 		return nil, withMessage(err)
+	}
+
+	for _, qi := range result.Queries {
+		pass.Report(analysis.Diagnostic{
+			Pos:      qi.calleeObj.Pos(),
+			Category: QUERY,
+			Message:  qi.Query,
+		})
 	}
 
 	for _, qi := range result.unresolved {
