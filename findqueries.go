@@ -72,7 +72,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	for _, qi := range result.Queries {
 		pass.Report(analysis.Diagnostic{
-			Pos:      qi.calleeObj.Pos(),
+			Pos:      qi.sitePos,
 			Category: QUERY,
 			Message:  qi.Query,
 		})

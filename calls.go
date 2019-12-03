@@ -163,9 +163,9 @@ func findQueries(pkg *ssa.Package, queriers []querierInfo, builders []builderInf
 						return nil, nil, nil, errors.New("unexpectedly a call doesn't have its position")
 					}
 					qi := queryInfo{
-						Caller:    caller,
-						Pos:       pkg.Prog.Fset.Position(site.Pos()).String(),
-						calleeObj: e.Callee.Func.Object(),
+						Caller:  caller,
+						Pos:     pkg.Prog.Fset.Position(site.Pos()).String(),
+						sitePos: e.Site.Pos(),
 					}
 					if expr := er.ResolveFrom(site.Pos()); expr != nil {
 						qi.Expr = types.ExprString(expr)

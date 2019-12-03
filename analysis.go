@@ -1,7 +1,7 @@
 package findqueries
 
 import (
-	"go/types"
+	"go/token"
 
 	"github.com/pkg/errors"
 	"golang.org/x/tools/go/ssa"
@@ -15,12 +15,12 @@ type Result struct {
 }
 
 type queryInfo struct {
-	Query     string `json:"query"`
-	Caller    string `json:"caller"`
-	Expr      string `json:"expr"`
-	Pos       string `json:"pos"`
-	calleeObj types.Object
-	err       error
+	Query   string `json:"query"`
+	Caller  string `json:"caller"`
+	Expr    string `json:"expr"`
+	Pos     string `json:"pos"`
+	sitePos token.Pos
+	err     error
 }
 
 type call struct {
