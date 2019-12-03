@@ -1,4 +1,4 @@
-package main
+package findqueries
 
 import (
 	"encoding/json"
@@ -17,7 +17,7 @@ type builderInfo struct{
 
 func defaultBuilderInfoPath() string {
 	_, filename, _, _ := runtime.Caller(0)
-	return filepath.Join(filepath.Dir(filename), "queryer", "builders.json")
+	return filepath.Join(filepath.Dir(filename), "querier", "builders.json")
 }
 
 func loadBuilderInfo(path string) ([]builderInfo, error) {

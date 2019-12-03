@@ -1,4 +1,4 @@
-package main
+package findqueries
 
 import (
 	"encoding/json"
@@ -9,22 +9,22 @@ import (
 	"github.com/pkg/errors"
 )
 
-type queryerInfo struct{
+type querierInfo struct{
 	FullName string `json:"full_name"`
 	QueryPos int    `json:"query_pos"`
 }
 
-func defaultQueryerInfoPath() string {
+func defaultQuerierInfoPath() string {
 	_, filename, _, _ := runtime.Caller(0)
-	return filepath.Join(filepath.Dir(filename), "queryer", "queryers.json")
+	return filepath.Join(filepath.Dir(filename), "querier", "queriers.json")
 }
 
-func loadQueryerInfo(path string) ([]queryerInfo, error) {
+func loadQuerierInfo(path string) ([]querierInfo, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read queryers data")
 	}
-	qis := make([]queryerInfo, 0)
+	qis := make([]querierInfo, 0)
 	if err := json.Unmarshal(data, &qis); err != nil {
 		return nil, errors.Wrap(err, "failed to read queryers data")
 	}

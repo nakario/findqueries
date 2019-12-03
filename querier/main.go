@@ -14,14 +14,14 @@ import (
 	"sort"
 )
 
-type queryerInfo struct{
+type querierInfo struct{
 	FullName string `json:"full_name"`
 	QueryPos int    `json:"query_pos"`
 }
 
 func main() {
 	_, filename, _, _ := runtime.Caller(0)
-	filename = filepath.Join(filepath.Dir(filename), "queryers.go")
+	filename = filepath.Join(filepath.Dir(filename), "queriers.go")
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, filename, nil, 0)
 	if err != nil {
@@ -36,7 +36,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	qis := make([]queryerInfo, 0)
+	qis := make([]querierInfo, 0)
 	for _, obj := range info.Uses {
 		if fn, ok := obj.(*types.Func); ok {
 			fullName := fn.FullName()
@@ -52,7 +52,7 @@ func main() {
 			if pos == -1 {
 				panic("argument \"query\" not found")
 			}
-			qis = append(qis, queryerInfo{fullName, pos})
+			qis = append(qis, querierInfo{fullName, pos})
 		}
 	}
 	sort.Slice(qis, func(i, j int) bool {

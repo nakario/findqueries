@@ -1,8 +1,7 @@
-package main
+package findqueries
 
 import (
 	"fmt"
-	"go/ast"
 	"go/token"
 	"go/types"
 	"os"
@@ -137,7 +136,7 @@ func (qr *queryResolver) resolveFunc(fn *ssa.Function, index int) ([]string, err
 	return queries, nil
 }
 
-func findCalls(pkg *ssa.Package, queryers []queryerInfo, builders []builderInfo, pos2expr map[token.Pos]*ast.CallExpr) ([]queryInfo, []call, error) {
+func findQueries(pkg *ssa.Package, queryers []querierInfo, builders []builderInfo, er ExprResolver) ([]queryInfo, []call, error) {
 	queryersMap := make(map[string]int)
 	for _, qi := range queryers {
 		queryersMap[qi.FullName] = qi.QueryPos
@@ -164,7 +163,7 @@ func findCalls(pkg *ssa.Package, queryers []queryerInfo, builders []builderInfo,
 						return nil, nil, errors.New("unexpectedly a call doesn't have its position")
 					}
 					qi := queryInfo{Caller: caller, Pos: pkg.Prog.Fset.Position(site.Pos()).String()}
-					if expr, ok := pos2expr[site.Pos()]; ok {
+					if expr := er.ResolveFrom(site.Pos()); expr != nil {
 						qi.Expr = types.ExprString(expr)
 					} else {
 						fmt.Fprintln(os.Stderr, pkg.Prog.Fset.Position(site.Pos()))
