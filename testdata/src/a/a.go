@@ -53,6 +53,62 @@ func testQueryPatterns() {
 	db.Query(`ABC`) // want `ABC`
 }
 
+const Q = "SELECT a FROM constant"
+
+func f1() string {
+	return `SELECT a FROM f1`
+}
+
+func f2() (string, error) {
+	return `SELECT a FROM f2`, nil
+}
+
+func f3() (string, []interface{}) {
+	return "SELECT a FROM f3 WHERE b=?, c=?", []interface{}{1, 1}
+}
+
+type myString string
+type stringAlias = string
+
+func testComplexCalls() {
+	db.Query((`SELECT a FROM paren`)) // want `SELECT a FROM paren`
+	db.Query(`SELECT a ` + `FROM binary_operation`) // want `SELECT a FROM binary_operation`
+	db.Query(string("SELECT a FROM type_conversion1")) // want `SELECT a FROM type_conversion1`
+	db.Query(string(myString("SELECT a FROM type_conversion2"))) // want `SELECT a FROM type_conversion2`
+	db.Query(stringAlias(myString("SELECT a FROM type_conversion3"))) // want `SELECT a FROM type_conversion3`
+	q2 := `SELECT a FROM variable`
+	db.Query(q2) // want `SELECT a FROM variable`
+	q2 = `SELECT a FROM reassigned_variable`
+	db.Query(q2) // want `SELECT a FROM reassigned_variable`
+	db.Query(Q) // want `SELECT a FROM constant`
+	q3 := "SELECT a "
+	if f1() == "" {
+		q3 += "FROM if"
+	} else {
+		q3 += "FROM else"
+	}
+	db.Query(q3) // want `SELECT a FROM if` `SELECT a FROM else`
+	for _, q := range []string{`SELECT 1 FROM slice`, `SELECT 2 FROM slice`} {
+		db.Query(q) // want `SELECT 1 FROM slice` `SELECT 2 FROM slice`
+	}
+	db.Query(f1()) // want `SELECT a FROM f1`
+	q4, err := f2()
+	if err != nil {
+		panic(err)
+	}
+	db.Query(q4) // want `SELECT a FROM f2`
+	db.Query(f3()) // want `SELECT a FROM f3`
+	go db.Query(`SELECT a FROM go`) // want `SELECT a FROM go`
+	defer db.Query("SELECT a FROM defer") // want `SELECT a FROM defer`
+
+	inQuery, inArgs, err := sqlx.In("SELECT a FROM sqlx_in WHERE 1 in () AND a=?", []int{1, 2, 3}, 4)
+	if err != nil {
+		panic(err)
+	}
+	a := struct{a, b int}{}
+	dbx.Get(&a, inQuery, inArgs...) // want `SELECT a FROM sqlx_in WHERE 1 in \(\) AND a=?`
+}
+
 func testQueriers() {
 	ctx := context.Background()
 	var id int
