@@ -5,20 +5,20 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
-type Result struct{
+type Result struct {
 	Queries map[string][]queryInfo `json:"queries"`
-	Calls map[string][]call `json:"calls"`
+	Calls   map[string][]call      `json:"calls"`
 }
 
-type queryInfo struct{
-	Query string `json:"query"`
+type queryInfo struct {
+	Query  string `json:"query"`
 	Caller string `json:"caller"`
-	Expr string `json:"expr"`
-	Pos string `json:"pos"`
-	err error
+	Expr   string `json:"expr"`
+	Pos    string `json:"pos"`
+	err    error
 }
 
-type call struct{
+type call struct {
 	Caller string `json:"caller"`
 	Callee string `json:"callee"`
 }

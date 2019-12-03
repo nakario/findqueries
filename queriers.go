@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type querierInfo struct{
+type querierInfo struct {
 	FullName string `json:"full_name"`
 	QueryPos int    `json:"query_pos"`
 }

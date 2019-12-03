@@ -14,7 +14,7 @@ import (
 )
 
 type queryResolver struct {
-	pkg *types.Package
+	pkg         *types.Package
 	buildersMap map[string]builderInfo
 }
 
@@ -59,10 +59,10 @@ func (qr *queryResolver) resolve(query ssa.Value) ([]string, error) {
 			return nil, errors.New("couldn't find any queries from lhs of +")
 		}
 		ys, err := qr.resolve(q.Y)
-		ret := make([]string, 0, len(xs) * len(ys))
+		ret := make([]string, 0, len(xs)*len(ys))
 		for _, x := range xs {
 			for _, y := range ys {
-				ret = append(ret, x + y)
+				ret = append(ret, x+y)
 			}
 		}
 		if len(ys) == 0 {
@@ -148,7 +148,9 @@ func findQueries(pkg *ssa.Package, queriers []querierInfo, builders []builderInf
 	pkg.Build()
 	cg := cha.CallGraph(pkg.Prog)
 	for fn, node := range cg.Nodes {
-		if fn == nil || node == nil { continue }
+		if fn == nil || node == nil {
+			continue
+		}
 		if node.Func.Package() != pkg {
 			continue
 		}

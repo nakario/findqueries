@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type builderInfo struct{
+type builderInfo struct {
 	FullName string `json:"full_name"`
 	ArgIndex int    `json:"arg_index"`
 	RetIndex int    `json:"ret_index"`

@@ -20,14 +20,14 @@ const Doc = `find SQL queries and functions calling them internally`
 
 var Analyzer = &analysis.Analyzer{
 	Name: "findqueries",
-	Doc: Doc,
-	Run: run,
+	Doc:  Doc,
+	Run:  run,
 	Requires: []*analysis.Analyzer{
 		inspect.Analyzer,
 		buildssa.Analyzer,
 	},
 	ResultType: reflect.TypeOf((*Result)(nil)),
-	FactTypes: []analysis.Fact{},
+	FactTypes:  []analysis.Fact{},
 }
 
 var (
