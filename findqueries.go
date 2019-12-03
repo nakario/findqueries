@@ -39,11 +39,13 @@ const (
 var (
 	queriersInfoPath string // -queriers flag
 	buildersInfoPath string // -builders flag
+	silent bool // -silent flag
 )
 
 func init() {
 	Analyzer.Flags.StringVar(&queriersInfoPath, "queriers", defaultQuerierInfoPath(), "path to queriers.json")
 	Analyzer.Flags.StringVar(&buildersInfoPath, "builders", defaultBuilderInfoPath(), "path to builders.json")
+	Analyzer.Flags.BoolVar(&silent, "silent", false, "stop emitting json")
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -83,15 +85,17 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		fmt.Fprintln(os.Stderr, qi.err)
 	}
 
-	b, err := json.Marshal(result)
-	if err != nil {
-		return nil, withMessage(errors.Wrap(err, "failed to jsonify result"))
+	if !silent {
+		b, err := json.Marshal(result)
+		if err != nil {
+			return nil, withMessage(errors.Wrap(err, "failed to jsonify result"))
+		}
+		buf := new(bytes.Buffer)
+		if err := json.Compact(buf, b); err != nil {
+			return nil, withMessage(errors.Wrap(err, "failed to compact json"))
+		}
+		fmt.Println(buf)
 	}
-	buf := new(bytes.Buffer)
-	if err := json.Compact(buf, b); err != nil {
-		return nil, withMessage(errors.Wrap(err, "failed to compact json"))
-	}
-	fmt.Println(buf)
 
 	return result, nil
 }

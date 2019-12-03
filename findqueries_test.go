@@ -9,5 +9,6 @@ import (
 
 func Test(t *testing.T) {
 	testdata := analysistest.TestData()
+	findqueries.Analyzer.Flags.Set("silent", "true")
 	analysistest.Run(t, testdata, findqueries.Analyzer, "a")
 }
