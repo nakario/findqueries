@@ -22,7 +22,7 @@ var (
 	queryerContext sqlx.QueryerContext
 )
 
-var queryers = []interface{}{
+var queriers = []interface{}{
 	conn.ExecContext,
 	conn.PrepareContext,
 	conn.QueryContext,

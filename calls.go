@@ -136,10 +136,10 @@ func (qr *queryResolver) resolveFunc(fn *ssa.Function, index int) ([]string, err
 	return queries, nil
 }
 
-func findQueries(pkg *ssa.Package, queryers []querierInfo, builders []builderInfo, er ExprResolver) ([]queryInfo, []call, error) {
-	queryersMap := make(map[string]int)
-	for _, qi := range queryers {
-		queryersMap[qi.FullName] = qi.QueryPos
+func findQueries(pkg *ssa.Package, queriers []querierInfo, builders []builderInfo, er ExprResolver) ([]queryInfo, []call, error) {
+	queriersMap := make(map[string]int)
+	for _, qi := range queriers {
+		queriersMap[qi.FullName] = qi.QueryPos
 	}
 	qr := newQueryResolver(pkg.Pkg, builders)
 	queries := make([]queryInfo, 0)
@@ -156,7 +156,7 @@ func findQueries(pkg *ssa.Package, queryers []querierInfo, builders []builderInf
 			caller := e.Caller.Func.RelString(pkg.Pkg)
 			callee := e.Callee.Func.RelString(pkg.Pkg)
 
-			if pos, ok := queryersMap[callee]; ok {
+			if pos, ok := queriersMap[callee]; ok {
 				site := e.Site
 				if site != nil {
 					if site.Pos() == token.NoPos {

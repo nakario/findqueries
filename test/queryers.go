@@ -23,7 +23,7 @@ func f3() (string, []interface{}) {
 type myString string
 type stringAlias = string
 
-func queryers() {
+func queriers() {
 	db.Query("SELECT * FROM interpreted_string_lit")
 	db.Query(`SELECT * FROM raw_string_lit`)
 	db.Query(("SELECT * FROM paren"))

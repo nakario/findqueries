@@ -22,11 +22,11 @@ func defaultQuerierInfoPath() string {
 func loadQuerierInfo(path string) ([]querierInfo, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to read queryers data")
+		return nil, errors.Wrap(err, "failed to read queriers data")
 	}
 	qis := make([]querierInfo, 0)
 	if err := json.Unmarshal(data, &qis); err != nil {
-		return nil, errors.Wrap(err, "failed to read queryers data")
+		return nil, errors.Wrap(err, "failed to read queriers data")
 	}
 	return qis, nil
 }

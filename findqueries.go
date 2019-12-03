@@ -44,7 +44,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	withMessage := func(err error) error {
 		return errors.WithMessagef(err, "failed to analyze pass %s", pass.String())
 	}
-	queryers, err := loadQuerierInfo(queriersInfoPath)
+	queriers, err := loadQuerierInfo(queriersInfoPath)
 	if err != nil {
 		return nil, withMessage(err)
 	}
@@ -57,7 +57,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	ssa := pass.ResultOf[buildssa.Analyzer].(*buildssa.SSA)
 	inspctr := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 	er := NewExprResolver(inspctr)
-	result, err := analyzePackage(ssa.Pkg, er, queryers, builders)
+	result, err := analyzePackage(ssa.Pkg, er, queriers, builders)
 	if err != nil {
 		return nil, withMessage(err)
 	}
