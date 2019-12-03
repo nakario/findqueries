@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 
 	"github.com/pkg/errors"
@@ -63,6 +64,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err != nil {
 		return nil, withMessage(err)
 	}
+
+	for _, qi := range result.Unresolved[ssa.Pkg.Pkg.Name()] {
+		fmt.Fprintln(os.Stderr, qi.Pos, qi.Expr)
+		fmt.Fprintln(os.Stderr, qi.err)
+	}
+	result.Unresolved = nil
 
 	b, err := json.Marshal(result)
 	if err != nil {

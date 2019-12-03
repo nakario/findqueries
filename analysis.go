@@ -6,8 +6,9 @@ import (
 )
 
 type Result struct {
-	Queries map[string][]queryInfo `json:"queries"`
-	Calls   map[string][]call      `json:"calls"`
+	Queries    map[string][]queryInfo `json:"queries"`
+	Unresolved map[string][]queryInfo `json:"unresolved"`
+	Calls      map[string][]call      `json:"calls"`
 }
 
 type queryInfo struct {
@@ -27,16 +28,19 @@ func analyzePackage(pkg *ssa.Package, er ExprResolver, queriers []querierInfo, b
 	if pkg == nil {
 		return nil, errors.New("nil package found")
 	}
-	qs, cs, err := findQueries(pkg, queriers, builders, er)
+	qs, us, cs, err := findQueries(pkg, queriers, builders, er)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to analyze a package")
 	}
 	queries := make(map[string][]queryInfo)
+	unresolved := make(map[string][]queryInfo)
 	calls := make(map[string][]call)
 	queries[pkg.Pkg.Name()] = qs
+	unresolved[pkg.Pkg.Name()] = us
 	calls[pkg.Pkg.Name()] = cs
 	return &Result{
-		Queries: queries,
-		Calls:   calls,
+		Queries:    queries,
+		Unresolved: unresolved,
+		Calls:      calls,
 	}, nil
 }

@@ -1,10 +1,8 @@
 package findqueries
 
 import (
-	"fmt"
 	"go/token"
 	"go/types"
-	"os"
 	"sort"
 	"strconv"
 
@@ -136,14 +134,14 @@ func (qr *queryResolver) resolveFunc(fn *ssa.Function, index int) ([]string, err
 	return queries, nil
 }
 
-func findQueries(pkg *ssa.Package, queriers []querierInfo, builders []builderInfo, er ExprResolver) ([]queryInfo, []call, error) {
+func findQueries(pkg *ssa.Package, queriers []querierInfo, builders []builderInfo, er ExprResolver) (queries []queryInfo, unresolved []queryInfo, calls []call, err error) {
 	queriersMap := make(map[string]int)
 	for _, qi := range queriers {
 		queriersMap[qi.FullName] = qi.QueryPos
 	}
 	qr := newQueryResolver(pkg.Pkg, builders)
-	queries := make([]queryInfo, 0)
-	unresolved := make([]queryInfo, 0)
+	queries = make([]queryInfo, 0)
+	unresolved = make([]queryInfo, 0)
 	er2ees := make(map[string][]string)
 	pkg.Build()
 	cg := cha.CallGraph(pkg.Prog)
@@ -162,14 +160,13 @@ func findQueries(pkg *ssa.Package, queriers []querierInfo, builders []builderInf
 				site := e.Site
 				if site != nil {
 					if site.Pos() == token.NoPos {
-						return nil, nil, errors.New("unexpectedly a call doesn't have its position")
+						return nil, nil, nil, errors.New("unexpectedly a call doesn't have its position")
 					}
 					qi := queryInfo{Caller: caller, Pos: pkg.Prog.Fset.Position(site.Pos()).String()}
 					if expr := er.ResolveFrom(site.Pos()); expr != nil {
 						qi.Expr = types.ExprString(expr)
 					} else {
-						fmt.Fprintln(os.Stderr, pkg.Prog.Fset.Position(site.Pos()))
-						return nil, nil, errors.Errorf("found an unexpected call")
+						return nil, nil, nil, errors.Errorf("found an unexpected call at %s", pkg.Prog.Fset.Position(site.Pos()))
 					}
 					args := site.Common().Args
 					if !site.Common().IsInvoke() && site.Common().Signature().Recv() != nil {
@@ -188,19 +185,11 @@ func findQueries(pkg *ssa.Package, queriers []querierInfo, builders []builderInf
 						}
 					}
 				} else {
-					fmt.Println("unexpected synthetic or intrinsic call")
+					return nil, nil, nil, errors.New("unexpected synthetic or intrinsic call")
 				}
 			}
 			er2ees[caller] = append(er2ees[caller], callee)
 		}
-	}
-
-	if len(unresolved) > 0 {
-		fmt.Fprintln(os.Stderr, "UNRESOLVED")
-	}
-	for _, qi := range unresolved {
-		fmt.Fprintln(os.Stderr, qi.Pos, qi.Expr)
-		fmt.Fprintln(os.Stderr, qi.err)
 	}
 
 	ers := make([]string, 0, len(er2ees))
@@ -211,12 +200,12 @@ func findQueries(pkg *ssa.Package, queriers []querierInfo, builders []builderInf
 		numEdges += len(ees)
 	}
 
-	calls := make([]call, 0, numEdges)
+	calls = make([]call, 0, numEdges)
 	for _, er := range ers {
 		for _, ee := range er2ees[er] {
 			calls = append(calls, call{er, ee})
 		}
 	}
 
-	return queries, calls, nil
+	return queries, unresolved, calls, nil
 }
