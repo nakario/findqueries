@@ -7,8 +7,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"go/ast"
-	"go/token"
 	"reflect"
 
 	"github.com/pkg/errors"
@@ -42,38 +40,6 @@ func init() {
 	Analyzer.Flags.StringVar(&buildersInfoPath, "builders", defaultBuilderInfoPath(), "path to builders.json")
 }
 
-type ExprResolver interface {
-	ResolveFrom(pos token.Pos) ast.Expr
-}
-
-type exprResolver struct {
-	pos2expr map[token.Pos]ast.Expr
-}
-
-func (er exprResolver) ResolveFrom(pos token.Pos) ast.Expr {
-	return er.pos2expr[pos]
-}
-
-func NewExprResolver(inspctr *inspector.Inspector) ExprResolver {
-	pos2expr := make(map[token.Pos]ast.Expr)
-	nodeFilter := []ast.Node{
-		(*ast.CallExpr)(nil),
-		(*ast.GoStmt)(nil),
-		(*ast.DeferStmt)(nil),
-	}
-	inspctr.Preorder(nodeFilter, func(n ast.Node) {
-		switch expr := n.(type) {
-		case *ast.CallExpr:
-			pos2expr[expr.Lparen] = expr
-		case *ast.GoStmt:
-			pos2expr[expr.Go] = expr.Call
-		case *ast.DeferStmt:
-			pos2expr[expr.Defer] = expr.Call
-		}
-	})
-	return exprResolver{pos2expr: pos2expr}
-}
-
 func run(pass *analysis.Pass) (interface{}, error) {
 	withMessage := func(err error) error {
 		return errors.WithMessagef(err, "failed to analyze pass %s", pass.String())
@@ -87,10 +53,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err != nil {
 		return nil, withMessage(err)
 	}
+
 	ssa := pass.ResultOf[buildssa.Analyzer].(*buildssa.SSA)
 	inspctr := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 	er := NewExprResolver(inspctr)
-
 	result, err := analyzePackage(ssa.Pkg, er, queryers, builders)
 	if err != nil {
 		return nil, withMessage(err)
