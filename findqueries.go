@@ -65,11 +65,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, withMessage(err)
 	}
 
-	for _, qi := range result.Unresolved[ssa.Pkg.Pkg.Name()] {
+	for _, qi := range result.unresolved {
 		fmt.Fprintln(os.Stderr, qi.Pos, qi.Expr)
 		fmt.Fprintln(os.Stderr, qi.err)
 	}
-	result.Unresolved = nil
 
 	b, err := json.Marshal(result)
 	if err != nil {
