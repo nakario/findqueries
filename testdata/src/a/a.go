@@ -3,7 +3,7 @@ package a
 import (
 	"context"
 	"database/sql"
-	"github.com/jmoiron/sqlx"
+	"sqlz"
 )
 
 var (
@@ -11,16 +11,10 @@ var (
 	db *sql.DB
 	tx *sql.Tx
 
-	dbx *sqlx.DB
-	txx *sqlx.Tx
-	execer sqlx.Execer = sqlx.NewDb(db, "mysql")
-	execerContext sqlx.ExecerContext = sqlx.NewDb(db, "mysql")
-	ext sqlx.Ext = sqlx.NewDb(db, "mysql")
-	extContext sqlx.ExtContext = sqlx.NewDb(db, "mysql")
-	preparer sqlx.Preparer = sqlx.NewDb(db, "mysql")
-	preparerContext sqlx.PreparerContext = sqlx.NewDb(db, "mysql")
-	queryer sqlx.Queryer = sqlx.NewDb(db, "mysql")
-	queryerContext sqlx.QueryerContext = sqlx.NewDb(db, "mysql")
+	dbz *sqlz.DB
+	txz *sqlz.Tx
+	execer sqlz.Execer = sqlz.NewDb(dbz, "mysql")
+	execerContext sqlz.ExecerContext = sqlz.NewDb(dbz, "mysql")
 )
 
 func testUsualUseCase() {
@@ -100,19 +94,10 @@ func testComplexCalls() {
 	db.Query(f3()) // want `SELECT a FROM f3`
 	go db.Query(`SELECT a FROM go`) // want `SELECT a FROM go`
 	defer db.Query("SELECT a FROM defer") // want `SELECT a FROM defer`
-
-	inQuery, inArgs, err := sqlx.In("SELECT a FROM sqlx_in WHERE 1 in () AND a=?", []int{1, 2, 3}, 4)
-	if err != nil {
-		panic(err)
-	}
-	a := struct{a, b int}{}
-	dbx.Get(&a, inQuery, inArgs...) // want `SELECT a FROM sqlx_in WHERE 1 in \(\) AND a=?`
 }
 
 func testQueriers() {
 	ctx := context.Background()
-	var id int
-	var names []string
 
 	conn.ExecContext(ctx, `ABC`) // want `ABC`
 	conn.PrepareContext(ctx, `ABC`) // want `ABC`
@@ -134,55 +119,12 @@ func testQueriers() {
 	tx.QueryRow(`ABC`) // want `ABC`
 	tx.QueryRowContext(ctx, `ABC`) // want `ABC`
 
-	sqlx.Get(queryer, &id, `ABC`) // want `ABC`
-	sqlx.GetContext(ctx, queryerContext, &id, `ABC`) // want `ABC`
-	sqlx.MustExec(execer, `ABC`) // want `ABC`
-	sqlx.MustExecContext(ctx, execerContext, `ABC`) // want `ABC`
-	sqlx.NamedExec(ext, `ABC`, nil) // want `ABC`
-	sqlx.NamedExecContext(ctx, extContext, `ABC`, nil) // want `ABC`
-	sqlx.NamedQuery(ext, `ABC`, nil) // want `ABC`
-	sqlx.NamedQueryContext(ctx, extContext, `ABC`, nil) // want `ABC`
-	sqlx.Select(queryer, &names, `ABC`) // want `ABC`
-	sqlx.SelectContext(ctx, queryerContext, &names, `ABC`) // want `ABC`
-	dbx.Get(&id, `ABC`) // want `ABC`
-	dbx.GetContext(ctx, &id, `ABC`) // want `ABC`
-	dbx.MustExec(`ABC`) // want `ABC`
-	dbx.MustExecContext(ctx, `ABC`) // want `ABC`
-	dbx.NamedExec(`ABC`, nil) // want `ABC`
-	dbx.NamedExecContext(ctx, `ABC`, nil) // want `ABC`
-	dbx.NamedQuery(`ABC`, nil) // want `ABC`
-	dbx.NamedQueryContext(ctx, `ABC`, nil) // want `ABC`
-	dbx.QueryRowx(`ABC`) // want `ABC`
-	dbx.QueryRowxContext(ctx, `ABC`) // want `ABC`
-	dbx.Queryx(`ABC`) // want `ABC`
-	dbx.QueryxContext(ctx, `ABC`) // want `ABC`
-	dbx.Select(&names, `ABC`) // want `ABC`
-	dbx.SelectContext(ctx, &names, `ABC`) // want `ABC`
-	txx.Get(&id, `ABC`) // want `ABC`
-	txx.GetContext(ctx, &id, `ABC`) // want `ABC`
-	txx.MustExec(`ABC`) // want `ABC`
-	txx.MustExecContext(ctx, `ABC`) // want `ABC`
-	txx.NamedExec(`ABC`, nil) // want `ABC`
-	txx.NamedExecContext(ctx, `ABC`, nil) // want `ABC`
-	txx.NamedQuery(`ABC`, nil) // want `ABC`
-	txx.PrepareNamed(`ABC`) // want `ABC`
-	txx.PrepareNamedContext(ctx, `ABC`) // want `ABC`
-	txx.Preparex(`ABC`) // want `ABC`
-	txx.PreparexContext(ctx, `ABC`) // want `ABC`
-	txx.QueryRowx(`ABC`) // want `ABC`
-	txx.QueryRowxContext(ctx, `ABC`) // want `ABC`
-	txx.Queryx(`ABC`) // want `ABC`
-	txx.QueryxContext(ctx, `ABC`) // want `ABC`
-	txx.Select(&names, `ABC`) // want `ABC`
-	txx.SelectContext(ctx,  &names, `ABC`) // want `ABC`
+	sqlz.Exec(execer, `ABC`) // want `ABC`
+	sqlz.ExecContext(ctx, execerContext, `ABC`) // want `ABC`
+	dbz.Exec(`ABC`) // want `ABC`
+	dbz.ExecContext(ctx, `ABC`) // want `ABC`
+	txz.Exec(`ABC`) // want `ABC`
+	txz.ExecContext(ctx, `ABC`) // want `ABC`
 	execer.Exec(`ABC`) // want `ABC`
 	execerContext.ExecContext(ctx, `ABC`) // want `ABC`
-	preparer.Prepare(`ABC`) // want `ABC`
-	preparerContext.PrepareContext(ctx, `ABC`) // want `ABC`
-	queryer.Query(`ABC`) // want `ABC`
-	queryer.QueryRowx(`ABC`) // want `ABC`
-	queryer.Queryx(`ABC`) // want `ABC`
-	queryerContext.QueryContext(ctx, `ABC`) // want `ABC`
-	queryerContext.QueryRowxContext(ctx, `ABC`) // want `ABC`
-	queryerContext.QueryxContext(ctx, `ABC`) // want `ABC`
 }

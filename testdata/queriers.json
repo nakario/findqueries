@@ -1,0 +1,27 @@
+[
+    {
+        "full_name": "sqlz.Exec",
+        "query_pos": 1
+    },
+    {
+        "full_name": "sqlz.ExecContext",
+        "query_pos": 2
+    },
+    {
+        "full_name": "(*sqlz.DB).Exec",
+        "query_pos": 0
+    },
+    {
+        "full_name": "(*sqlz.DB).ExecContext",
+        "query_pos": 1
+    },
+    {
+        "full_name": "(sqlz.Execer).Exec",
+        "query_pos": 0
+    },
+    {
+        "full_name": "(sqlz.ExecerContext).ExecContext",
+        "query_pos": 1
+    },
+    {"full_name":"(*database/sql.Conn).ExecContext","query_pos":1},{"full_name":"(*database/sql.Conn).PrepareContext","query_pos":1},{"full_name":"(*database/sql.Conn).QueryContext","query_pos":1},{"full_name":"(*database/sql.Conn).QueryRowContext","query_pos":1},{"full_name":"(*database/sql.DB).Exec","query_pos":0},{"full_name":"(*database/sql.DB).Prepare","query_pos":0},{"full_name":"(*database/sql.DB).PrepareContext","query_pos":1},{"full_name":"(*database/sql.DB).Query","query_pos":0},{"full_name":"(*database/sql.DB).QueryContext","query_pos":1},{"full_name":"(*database/sql.DB).QueryRow","query_pos":0},{"full_name":"(*database/sql.DB).QueryRowContext","query_pos":1},{"full_name":"(*database/sql.Tx).Exec","query_pos":0},{"full_name":"(*database/sql.Tx).ExecContext","query_pos":1},{"full_name":"(*database/sql.Tx).Prepare","query_pos":0},{"full_name":"(*database/sql.Tx).PrepareContext","query_pos":1},{"full_name":"(*database/sql.Tx).Query","query_pos":0},{"full_name":"(*database/sql.Tx).QueryContext","query_pos":1},{"full_name":"(*database/sql.Tx).QueryRow","query_pos":0},{"full_name":"(*database/sql.Tx).QueryRowContext","query_pos":1}
+]
