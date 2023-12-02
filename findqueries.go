@@ -39,7 +39,7 @@ const (
 var (
 	queriersInfoPath string // -queriers flag
 	buildersInfoPath string // -builders flag
-	silent bool // -silent flag
+	silent           bool   // -silent flag
 )
 
 func init() {

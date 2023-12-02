@@ -6,11 +6,11 @@ type DB struct{}
 
 type Tx struct{}
 
-type Execer interface{
+type Execer interface {
 	Exec(query string) error
 }
 
-type ExecerContext interface{
+type ExecerContext interface {
 	ExecContext(ctx context.Context, query string) error
 }
 

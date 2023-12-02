@@ -8,12 +8,12 @@ import (
 
 var (
 	conn *sql.Conn
-	db *sql.DB
-	tx *sql.Tx
+	db   *sql.DB
+	tx   *sql.Tx
 
-	dbz *sqlz.DB
-	txz *sqlz.Tx
-	execer sqlz.Execer
+	dbz           *sqlz.DB
+	txz           *sqlz.Tx
+	execer        sqlz.Execer
 	execerContext sqlz.ExecerContext
 )
 
@@ -33,7 +33,7 @@ func TestUsualUseCase() {
 func TestLiteralPatterns() {
 	db.Query("SELECT name FROM users") // want "SELECT name FROM users"
 	db.Query(`SELECT name FROM users`) // want "SELECT name FROM users"
-	db.Query( // want "SELECT\n\t\t\t\t\tname\n\t\t\t\tFROM\n\t\t\t\t\tusers\n\t"
+	db.Query(                          // want "SELECT\n\t\t\t\t\tname\n\t\t\t\tFROM\n\t\t\t\t\tusers\n\t"
 		`	SELECT
 					name
 				FROM
@@ -42,9 +42,9 @@ func TestLiteralPatterns() {
 }
 
 func TestQueryPatterns() {
-	db.Query(`SELECT * FROM users`) // want `SELECT \* FROM users`
+	db.Query(`SELECT * FROM users`)                // want `SELECT \* FROM users`
 	db.Query(`SELECT * FROM users WHERE id > 100`) // want `SELECT \* FROM users WHERE id > 100`
-	db.Query(`ABC`) // want `ABC`
+	db.Query(`ABC`)                                // want `ABC`
 }
 
 const Q = "SELECT a FROM constant"
@@ -65,16 +65,16 @@ type myString string
 type stringAlias = string
 
 func TestComplexCalls() {
-	db.Query((`SELECT a FROM paren`)) // want `SELECT a FROM paren`
-	db.Query(`SELECT a ` + `FROM binary_operation`) // want `SELECT a FROM binary_operation`
-	db.Query(string("SELECT a FROM type_conversion1")) // want `SELECT a FROM type_conversion1`
-	db.Query(string(myString("SELECT a FROM type_conversion2"))) // want `SELECT a FROM type_conversion2`
+	db.Query((`SELECT a FROM paren`))                                 // want `SELECT a FROM paren`
+	db.Query(`SELECT a ` + `FROM binary_operation`)                   // want `SELECT a FROM binary_operation`
+	db.Query(string("SELECT a FROM type_conversion1"))                // want `SELECT a FROM type_conversion1`
+	db.Query(string(myString("SELECT a FROM type_conversion2")))      // want `SELECT a FROM type_conversion2`
 	db.Query(stringAlias(myString("SELECT a FROM type_conversion3"))) // want `SELECT a FROM type_conversion3`
 	q2 := `SELECT a FROM variable`
 	db.Query(q2) // want `SELECT a FROM variable`
 	q2 = `SELECT a FROM reassigned_variable`
 	db.Query(q2) // want `SELECT a FROM reassigned_variable`
-	db.Query(Q) // want `SELECT a FROM constant`
+	db.Query(Q)  // want `SELECT a FROM constant`
 	q3 := "SELECT a "
 	if f1() == "" {
 		q3 += "FROM if"
@@ -96,7 +96,7 @@ func TestComplexCalls() {
 	for i := range slice {
 		db.Query(slice[i]) // want `SELECT 3 FROM slice` `SELECT 4 FROM slice`
 	}
-	for _, q := range map[int]string {
+	for _, q := range map[int]string{
 		1: `SELECT 1 FROM map`,
 		2: `SELECT 2 FROM map`,
 	} {
@@ -114,41 +114,41 @@ func TestComplexCalls() {
 	if err != nil {
 		panic(err)
 	}
-	db.Query(q4) // want `SELECT a FROM f2`
-	db.Query(f3()) // want `SELECT a FROM f3`
-	go db.Query(`SELECT a FROM go`) // want `SELECT a FROM go`
+	db.Query(q4)                          // want `SELECT a FROM f2`
+	db.Query(f3())                        // want `SELECT a FROM f3`
+	go db.Query(`SELECT a FROM go`)       // want `SELECT a FROM go`
 	defer db.Query("SELECT a FROM defer") // want `SELECT a FROM defer`
 }
 
 func TestQueriers() {
 	ctx := context.Background()
 
-	conn.ExecContext(ctx, `ABC`) // want `ABC`
-	conn.PrepareContext(ctx, `ABC`) // want `ABC`
-	conn.QueryContext(ctx, `ABC`) // want `ABC`
+	conn.ExecContext(ctx, `ABC`)     // want `ABC`
+	conn.PrepareContext(ctx, `ABC`)  // want `ABC`
+	conn.QueryContext(ctx, `ABC`)    // want `ABC`
 	conn.QueryRowContext(ctx, `ABC`) // want `ABC`
-	db.Exec(`ABC`) // want `ABC`
-	db.Prepare(`ABC`) // want `ABC`
-	db.PrepareContext(ctx, `ABC`) // want `ABC`
-	db.Query(`ABC`) // want `ABC`
-	db.QueryContext(ctx, `ABC`) // want `ABC`
-	db.QueryRow(`ABC`) // want `ABC`
-	db.QueryRowContext(ctx, `ABC`) // want `ABC`
-	tx.Exec(`ABC`) // want `ABC`
-	tx.ExecContext(ctx, `ABC`) // want `ABC`
-	tx.Prepare(`ABC`) // want `ABC`
-	tx.PrepareContext(ctx, `ABC`) // want `ABC`
-	tx.Query(`ABC`) // want `ABC`
-	tx.QueryContext(ctx, `ABC`) // want `ABC`
-	tx.QueryRow(`ABC`) // want `ABC`
-	tx.QueryRowContext(ctx, `ABC`) // want `ABC`
+	db.Exec(`ABC`)                   // want `ABC`
+	db.Prepare(`ABC`)                // want `ABC`
+	db.PrepareContext(ctx, `ABC`)    // want `ABC`
+	db.Query(`ABC`)                  // want `ABC`
+	db.QueryContext(ctx, `ABC`)      // want `ABC`
+	db.QueryRow(`ABC`)               // want `ABC`
+	db.QueryRowContext(ctx, `ABC`)   // want `ABC`
+	tx.Exec(`ABC`)                   // want `ABC`
+	tx.ExecContext(ctx, `ABC`)       // want `ABC`
+	tx.Prepare(`ABC`)                // want `ABC`
+	tx.PrepareContext(ctx, `ABC`)    // want `ABC`
+	tx.Query(`ABC`)                  // want `ABC`
+	tx.QueryContext(ctx, `ABC`)      // want `ABC`
+	tx.QueryRow(`ABC`)               // want `ABC`
+	tx.QueryRowContext(ctx, `ABC`)   // want `ABC`
 
-	sqlz.Exec(execer, `ABC`) // want `ABC`
+	sqlz.Exec(execer, `ABC`)                    // want `ABC`
 	sqlz.ExecContext(ctx, execerContext, `ABC`) // want `ABC`
-	dbz.Exec(`ABC`) // want `ABC`
-	dbz.ExecContext(ctx, `ABC`) // want `ABC`
-	txz.Exec(`ABC`) // want `ABC`
-	txz.ExecContext(ctx, `ABC`) // want `ABC`
-	execer.Exec(`ABC`) // want `ABC` `ABC`
-	execerContext.ExecContext(ctx, `ABC`) // want `ABC` `ABC`
+	dbz.Exec(`ABC`)                             // want `ABC`
+	dbz.ExecContext(ctx, `ABC`)                 // want `ABC`
+	txz.Exec(`ABC`)                             // want `ABC`
+	txz.ExecContext(ctx, `ABC`)                 // want `ABC`
+	execer.Exec(`ABC`)                          // want `ABC` `ABC`
+	execerContext.ExecContext(ctx, `ABC`)       // want `ABC` `ABC`
 }

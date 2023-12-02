@@ -7,19 +7,19 @@ import (
 
 var (
 	conn *sql.Conn
-	db *sql.DB
-	tx *sql.Tx
+	db   *sql.DB
+	tx   *sql.Tx
 
-	dbx *sqlx.DB
-	txx *sqlx.Tx
-	execer sqlx.Execer
+	dbx           *sqlx.DB
+	txx           *sqlx.Tx
+	execer        sqlx.Execer
 	execerContext sqlx.ExecerContext
 	// ext sqlx.Ext
 	// extContext sqlx.ExtContext
-	preparer sqlx.Preparer
+	preparer        sqlx.Preparer
 	preparerContext sqlx.PreparerContext
-	queryer sqlx.Queryer
-	queryerContext sqlx.QueryerContext
+	queryer         sqlx.Queryer
+	queryerContext  sqlx.QueryerContext
 )
 
 var queriers = []interface{}{

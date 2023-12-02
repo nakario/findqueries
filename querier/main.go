@@ -14,7 +14,7 @@ import (
 	"sort"
 )
 
-type querierInfo struct{
+type querierInfo struct {
 	FullName string `json:"full_name"`
 	QueryPos int    `json:"query_pos"`
 }
@@ -30,7 +30,7 @@ func main() {
 	conf := &types.Config{Importer: importer.Default()}
 	info := &types.Info{
 		Types: make(map[ast.Expr]types.TypeAndValue),
-		Uses: make(map[*ast.Ident]types.Object),
+		Uses:  make(map[*ast.Ident]types.Object),
 	}
 	_, err = conf.Check("github.com/nakario/findqueries/test", fset, []*ast.File{f}, info)
 	if err != nil {
