@@ -13,8 +13,8 @@ var (
 
 	dbz *sqlz.DB
 	txz *sqlz.Tx
-	execer sqlz.Execer = sqlz.NewDb(dbz, "mysql")
-	execerContext sqlz.ExecerContext = sqlz.NewDb(dbz, "mysql")
+	execer sqlz.Execer
+	execerContext sqlz.ExecerContext
 )
 
 func testUsualUseCase() {
@@ -149,6 +149,6 @@ func testQueriers() {
 	dbz.ExecContext(ctx, `ABC`) // want `ABC`
 	txz.Exec(`ABC`) // want `ABC`
 	txz.ExecContext(ctx, `ABC`) // want `ABC`
-	execer.Exec(`ABC`) // want `ABC`
-	execerContext.ExecContext(ctx, `ABC`) // want `ABC`
+	execer.Exec(`ABC`) // want `ABC` `ABC`
+	execerContext.ExecContext(ctx, `ABC`) // want `ABC` `ABC`
 }
