@@ -7,7 +7,7 @@ It also reports call graph of every functions in the package specified.
 ## Usage
 
 ```bash
-$ go get -u github.com/nakario/findqueries
+$ go install github.com/nakario/findqueries@latest
 $ findqueries . 1> queries.json
 ```
 
@@ -39,6 +39,6 @@ $ cat queries.json | jq .
 To run `go test`, you need to run the following command.
 
 ```bash
-$ GO111MODULES=off GOPATH=$(readlink -f testdata) go get -u github.com/jmoiron/sqlx
+$ go mod download
 $ go test
 ```
