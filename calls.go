@@ -1,6 +1,7 @@
 package findqueries
 
 import (
+	"fmt"
 	"go/token"
 	"go/types"
 	"sort"
@@ -82,13 +83,13 @@ func (qr *queryResolver) resolve(query ssa.Value) ([]string, error) {
 			}
 			return qr.resolveFunc(callee, q.Index)
 		case *ssa.TypeAssert:
-			return nil, errors.Errorf("extraction not implemented: %#v", tuple.X)
+			return nil, errors.Errorf("extraction (TypeAssert) not implemented: %#v", tuple.X)
 		case *ssa.Next:
-			return nil, errors.Errorf("extraction not implemented: %#v", tuple.Iter)
+			return qr.resolve(tuple.Iter)
 		case *ssa.UnOp:
-			return nil, errors.Errorf("extraction not implemented: %#v", tuple.X)
+			return nil, errors.Errorf("extraction (UnOp) not implemented: %#v", tuple.X)
 		case *ssa.Lookup:
-			return nil, errors.Errorf("extraction not implemented: %#v", tuple.X)
+			return nil, errors.Errorf("extraction (LookUp) not implemented: %#v", tuple.X)
 		default:
 			return nil, errors.New("unexpected extraction")
 		}
@@ -101,8 +102,47 @@ func (qr *queryResolver) resolve(query ssa.Value) ([]string, error) {
 			return qr.resolve(q.Call.Args[bi.ArgIndex])
 		}
 		return qr.resolveFunc(callee, 0)
+	case *ssa.UnOp:
+		switch q.Op {
+		case token.MUL:
+			return qr.resolve(q.X)
+		default:
+			return nil, errors.Errorf("unexpected *ssa.UnOp %s", q.Op.String())
+		}
+	case *ssa.Slice:
+		return qr.resolve(q.X)
+	case *ssa.Index:
+		valueType := q.X.Type().Underlying()
+		switch valueType.(type) {
+		case *types.Array, *types.Slice:
+			return qr.resolve(q.X)
+		}
+		return nil, errors.Errorf("unsupported index")
+	case *ssa.IndexAddr:
+		valueType := q.X.Type().Underlying()
+	L:
+		for {
+			switch v := valueType.(type) {
+			case *types.Array, *types.Slice:
+				return qr.resolve(q.X)
+			case *types.Pointer:
+				valueType = v.Elem()
+				continue
+			default:
+				break L
+			}
+		}
+		return nil, errors.Errorf("unsupported IndexAddr %s (%#v)", valueType, valueType)
+	case *ssa.Lookup:
+		return qr.resolve(q.X)
+	case *ssa.Alloc:
+		return qr.resolveCollectionReferrers(q)
+	case *ssa.MakeMap:
+		return qr.resolveCollectionReferrers(q)
+	case *ssa.Range:
+		return qr.resolve(q.X)
 	}
-	return nil, errors.Errorf("failed to resolve a query: unsupported value type %T", query)
+	return nil, errors.Errorf("failed to resolve a query: unsupported value type %T of %s", query, query)
 }
 
 func (qr *queryResolver) resolveFunc(fn *ssa.Function, index int) ([]string, error) {
@@ -132,6 +172,32 @@ func (qr *queryResolver) resolveFunc(fn *ssa.Function, index int) ([]string, err
 		return nil, errors.New("couldn't find any queries in a function")
 	}
 	return queries, nil
+}
+
+func (qr *queryResolver) resolveCollectionReferrers(v ssa.Value) ([]string, error) {
+	ret := make([]string, 0)
+	for _, r := range *v.Referrers() {
+		switch s := r.(type) {
+		case *ssa.IndexAddr:
+			for _, r := range *s.Referrers() {
+				switch s := r.(type) {
+				case *ssa.Store:
+					ret2, err := qr.resolve(s.Val)
+					if err != nil {
+						return nil, fmt.Errorf("failed to resolve soted value: %w", err)
+					}
+					ret = append(ret, ret2...)
+				}
+			}
+		case *ssa.MapUpdate:
+			ret2, err := qr.resolve(s.Value)
+			if err != nil {
+				return nil, fmt.Errorf("failed to resolve map update value: %w", err)
+			}
+			ret = append(ret, ret2...)
+		}
+	}
+	return ret, nil
 }
 
 func findQueries(pkg *ssa.Package, queriers []querierInfo, builders []builderInfo, er ExprResolver) (queries []queryInfo, unresolved []queryInfo, calls []call, err error) {
