@@ -7,7 +7,7 @@ It also reports call graph of every functions in the package specified.
 ## Usage
 
 ```bash
-$ go install github.com/nakario/findqueries@latest
+$ go install github.com/nakario/findqueries/cmd/findqueries@latest
 $ findqueries . 1> queries.json
 ```
 
