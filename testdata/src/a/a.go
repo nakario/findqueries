@@ -17,7 +17,7 @@ var (
 	execerContext sqlz.ExecerContext
 )
 
-func testUsualUseCase() {
+func TestUsualUseCase() {
 	rows, err := db.Query("SELECT name FROM users") // want "SELECT name FROM users"
 	if err != nil {
 		return
@@ -30,7 +30,7 @@ func testUsualUseCase() {
 	}
 }
 
-func testLiteralPatterns() {
+func TestLiteralPatterns() {
 	db.Query("SELECT name FROM users") // want "SELECT name FROM users"
 	db.Query(`SELECT name FROM users`) // want "SELECT name FROM users"
 	db.Query( // want "SELECT\n\t\t\t\t\tname\n\t\t\t\tFROM\n\t\t\t\t\tusers\n\t"
@@ -41,7 +41,7 @@ func testLiteralPatterns() {
 	`)
 }
 
-func testQueryPatterns() {
+func TestQueryPatterns() {
 	db.Query(`SELECT * FROM users`) // want `SELECT \* FROM users`
 	db.Query(`SELECT * FROM users WHERE id > 100`) // want `SELECT \* FROM users WHERE id > 100`
 	db.Query(`ABC`) // want `ABC`
@@ -64,7 +64,7 @@ func f3() (string, []interface{}) {
 type myString string
 type stringAlias = string
 
-func testComplexCalls() {
+func TestComplexCalls() {
 	db.Query((`SELECT a FROM paren`)) // want `SELECT a FROM paren`
 	db.Query(`SELECT a ` + `FROM binary_operation`) // want `SELECT a FROM binary_operation`
 	db.Query(string("SELECT a FROM type_conversion1")) // want `SELECT a FROM type_conversion1`
@@ -120,7 +120,7 @@ func testComplexCalls() {
 	defer db.Query("SELECT a FROM defer") // want `SELECT a FROM defer`
 }
 
-func testQueriers() {
+func TestQueriers() {
 	ctx := context.Background()
 
 	conn.ExecContext(ctx, `ABC`) // want `ABC`
